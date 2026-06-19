@@ -70,7 +70,20 @@ npm run lint
 デプロイできます。`vite.config.ts` の `base: './'` 設定により、サブパス配下(例:
 `https://example.com/ruby-pocket-runner/`)にデプロイしても相対パスでアセットを解決できます。
 
-### GitHub Pages の例
+### GitHub Pages の例(GitHub Actionsで自動デプロイ、推奨)
+
+`.github/workflows/deploy-pages.yml` を同梱しています。`main` ブランチへのpush、または
+Actionsタブからの手動実行(`workflow_dispatch`)で `npm run build` を実行し、`dist/` を
+GitHub Pagesへ自動デプロイします。
+
+利用するには、リポジトリの **Settings → Pages → Build and deployment → Source** を
+**GitHub Actions** に設定してください(初回のみ、手動での1回限りの設定が必要です)。
+設定後は対象ブランチへのpush、またはActionsタブの「Run workflow」から
+`deploy-pages` ワークフローを実行するだけで、Pages用のURLが発行されます。
+
+### GitHub Pages の例(手動デプロイ)
+
+CIを使わずその場でデプロイしたい場合は `gh-pages` パッケージでも公開できます。
 
 ```bash
 npm run build
