@@ -3,7 +3,7 @@ import type { WorkerInboundMessage, WorkerOutboundMessage } from "../worker/prot
 
 const RUN_TIMEOUT_MS = 3000;
 
-export type RunStatus = "loading" | "ready" | "running" | "load-error";
+export type RunStatus = "loading" | "ready" | "running" | "load-error" | "error";
 
 export interface OutputChunk {
   id: number;
@@ -57,7 +57,7 @@ export function useRubyRunner() {
         case "done":
           if (message.runId === runIdRef.current) {
             clearTimer();
-            setStatus("ready");
+            setStatus(message.ok ? "ready" : "error");
           }
           break;
       }
@@ -115,7 +115,10 @@ export function useRubyRunner() {
     attachWorker();
   }, [attachWorker, clearTimer]);
 
-  const clearOutput = useCallback(() => setOutput([]), []);
+  const clearOutput = useCallback(() => {
+    setOutput([]);
+    setStatus((prev) => (prev === "error" ? "ready" : prev));
+  }, []);
 
   return { status, output, run, clearOutput, reload };
 }
