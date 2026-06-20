@@ -9,4 +9,4 @@ export type WorkerOutboundMessage =
   | { type: "load-error"; message: string }
   | { type: "stdout"; text: string }
   | { type: "stderr"; text: string }
-  | { type: "done"; runId: number; ok: boolean };
+  | { type: "done"; runId: number; ok: boolean; errorLine: number | null; errorMessage: string | null };

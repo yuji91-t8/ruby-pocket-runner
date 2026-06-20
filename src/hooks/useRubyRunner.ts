@@ -22,6 +22,8 @@ export function useRubyRunner() {
   const chunkIdRef = useRef(0);
   const [status, setStatus] = useState<RunStatus>("loading");
   const [output, setOutput] = useState<OutputChunk[]>([]);
+  const [errorLine, setErrorLine] = useState<number | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const appendChunk = useCallback((stream: OutputChunk["stream"], text: string) => {
     setOutput((prev) => [...prev, { id: chunkIdRef.current++, stream, text }]);
@@ -46,6 +48,8 @@ export function useRubyRunner() {
           break;
         case "load-error":
           setStatus("load-error");
+          setErrorLine(null);
+          setErrorMessage(null);
           appendChunk("system", `Rubyランタイムの読み込みに失敗しました: ${message.message}`);
           break;
         case "stdout":
@@ -58,6 +62,8 @@ export function useRubyRunner() {
           if (message.runId === runIdRef.current) {
             clearTimer();
             setStatus("ready");
+            setErrorLine(message.errorLine);
+            setErrorMessage(message.errorMessage);
           }
           break;
       }
@@ -67,6 +73,8 @@ export function useRubyRunner() {
       clearTimer();
       appendChunk("system", `ワーカーで予期しないエラーが発生しました: ${event.message}`);
       setStatus("load-error");
+      setErrorLine(null);
+      setErrorMessage(null);
     };
 
     return worker;
@@ -90,6 +98,8 @@ export function useRubyRunner() {
       const runId = runIdRef.current;
       setOutput([]);
       setStatus("running");
+      setErrorLine(null);
+      setErrorMessage(null);
 
       const message: WorkerInboundMessage = { type: "run", code, runId };
       worker.postMessage(message);
@@ -102,6 +112,8 @@ export function useRubyRunner() {
           `実行が${RUN_TIMEOUT_MS / 1000}秒を超えたため強制終了しました(無限ループの可能性があります)。`,
         );
         setStatus("loading");
+        setErrorLine(null);
+        setErrorMessage(null);
         attachWorker();
       }, RUN_TIMEOUT_MS);
     },
@@ -112,10 +124,16 @@ export function useRubyRunner() {
     clearTimer();
     workerRef.current?.terminate();
     setStatus("loading");
+    setErrorLine(null);
+    setErrorMessage(null);
     attachWorker();
   }, [attachWorker, clearTimer]);
 
-  const clearOutput = useCallback(() => setOutput([]), []);
+  const clearOutput = useCallback(() => {
+    setOutput([]);
+    setErrorLine(null);
+    setErrorMessage(null);
+  }, []);
 
-  return { status, output, run, clearOutput, reload };
+  return { status, output, run, clearOutput, reload, errorLine, errorMessage };
 }

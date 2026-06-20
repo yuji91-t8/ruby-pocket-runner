@@ -9,7 +9,7 @@ import "./App.css";
 function App() {
   const [code, setCode] = useState(INITIAL_CODE);
   const [copied, setCopied] = useState(false);
-  const { status, output, run, clearOutput, reload } = useRubyRunner();
+  const { status, output, run, clearOutput, reload, errorLine, errorMessage } = useRubyRunner();
 
   const isBusy = status === "loading" || status === "running";
 
@@ -43,7 +43,7 @@ function App() {
             </div>
           </div>
           <div className="editor-wrap">
-            <Editor value={code} onChange={setCode} />
+            <Editor value={code} onChange={setCode} errorLine={errorLine} errorMessage={errorMessage} />
           </div>
         </section>
 

@@ -3,6 +3,7 @@ import { RubyVM } from "@ruby/wasm-wasi";
 import { WASI, File, OpenFile, PreopenDirectory } from "@bjorn3/browser_wasi_shim";
 import rubyWasmUrl from "@ruby/3.2-wasm-wasi/dist/ruby+stdlib.wasm?url";
 import type { WorkerInboundMessage, WorkerOutboundMessage } from "./protocol";
+import { parseRubyError } from "./parseRubyError";
 
 function post(message: WorkerOutboundMessage) {
   (self as DedicatedWorkerGlobalScope).postMessage(message);
@@ -86,10 +87,18 @@ self.onmessage = async (event: MessageEvent<WorkerInboundMessage>) => {
   try {
     const vm = await getVM();
     vm.eval(code);
-    post({ type: "done", runId, ok: true });
+    post({ type: "done", runId, ok: true, errorLine: null, errorMessage: null });
   } catch (error) {
-    post({ type: "stderr", text: errorMessage(error) + "\n" });
-    post({ type: "done", runId, ok: false });
+    const text = errorMessage(error);
+    post({ type: "stderr", text: text + "\n" });
+    const { line, isSyntaxError, message } = parseRubyError(text);
+    post({
+      type: "done",
+      runId,
+      ok: false,
+      errorLine: isSyntaxError ? line : null,
+      errorMessage: isSyntaxError ? message : null,
+    });
   }
 };
 
