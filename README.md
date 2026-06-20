@@ -11,6 +11,8 @@
 - コードのコピー機能、エディタへの貼り付け(OS標準のコピー&ペースト)に対応
 - 無限ループ対策: コードはWeb Worker上で実行し、**3秒で強制終了(terminate)**
 - スマホでも使えるレスポンシブUI
+- PWA対応: スマホのホーム画面にアプリとして追加可能。Rubyランタイム(wasm)を含めて
+  オフラインキャッシュするため、2回目以降は通信なしでも起動・実行できます
 - ネットワーク上のサーバーで任意コードを実行する仕組みは持たない(完全クライアントサイド)
 
 ## 技術スタック
@@ -18,6 +20,7 @@
 - [Vite](https://vite.dev/) + [React](https://react.dev/) + TypeScript
 - エディタ: [`@uiw/react-codemirror`](https://github.com/uiwjs/react-codemirror)([CodeMirror 6](https://codemirror.net/)) + `@codemirror/legacy-modes` (Rubyシンタックス)
 - Ruby実行: [`@ruby/3.2-wasm-wasi`](https://www.npmjs.com/package/@ruby/3.2-wasm-wasi)(Ruby 3.2 + 標準ライブラリをWASI向けにビルドしたwasmバイナリ)
+- PWA対応: [`vite-plugin-pwa`](https://vite-pwa-org.netlify.app/)(マニフェスト・Service Worker・オフラインキャッシュを自動生成)
 
 ## セットアップ
 
@@ -105,6 +108,23 @@ npx gh-pages -d dist
   確認してください(主要な静的ホスティングサービスでは問題ありません)。
 - Web Workerをモジュールとして読み込むため(`new Worker(url, { type: "module" })`)、
   古いブラウザ(モジュールワーカー非対応)では動作しません。
+
+## ホーム画面に追加して使う(PWA)
+
+デプロイしたURLをiPhoneのSafariで開くと、ホーム画面にアプリとして追加できます。
+
+1. SafariでデプロイURL(例: GitHub PagesのURL)を開く
+2. 画面下部の共有アイコン(□に↑)をタップ
+3. 「ホーム画面に追加」を選択
+4. ホーム画面に「Ruby Runner」アイコンが追加される
+
+ホーム画面のアイコンから起動すると、アドレスバーなどのないアプリのような全画面表示
+(`standalone`)で動作します。初回起動時にRubyランタイム(wasm、約30MB)を含めて
+Service Workerがオフラインキャッシュするため、2回目以降は機内モードなど通信が
+ない状態でも起動・実行できます(Rubyコード自体ももともとサーバーに送信されません)。
+
+Android Chromeでも同様に、メニューから「ホーム画面に追加」/「アプリをインストール」
+で同様の体験が可能です。
 
 ## 実行の仕組み・安全性について
 
