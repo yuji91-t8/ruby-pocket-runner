@@ -5,6 +5,7 @@ const LABEL: Record<RunStatus, string> = {
   ready: "準備完了",
   running: "実行中…",
   "load-error": "読み込みエラー",
+  error: "実行時エラー",
 };
 
 export function StatusBadge({ status }: { status: RunStatus }) {

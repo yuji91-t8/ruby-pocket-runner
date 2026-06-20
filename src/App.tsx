@@ -61,7 +61,7 @@ function App() {
               )}
             </div>
           </div>
-          <Output chunks={output} />
+          <Output chunks={output} status={status} />
         </section>
       </div>
 
